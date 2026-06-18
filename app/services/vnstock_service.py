@@ -446,11 +446,34 @@ def search_info(query: str) -> list[dict]:
 
 def get_market_status() -> Any:
     """Get live market status."""
-    ref = get_reference()
-    result = safe_call(ref.market.status)
-    if isinstance(result, dict):
-        return result
-    return df_to_records(result)
+    try:
+        ref = get_reference()
+        result = safe_call(ref.market().status)
+        if isinstance(result, dict):
+            return result
+        return df_to_records(result)
+    except Exception as e:
+        logger.warning(f"Failed to get market status from vnstock: {e}. Using local fallback.")
+        import datetime
+        # Get UTC time and add 7 hours for Vietnam Time (GMT+7)
+        vn_time = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+        weekday = vn_time.weekday() # 0 = Monday, 6 = Sunday
+        status = "CLOSED"
+        if weekday < 5: # Monday - Friday
+            current_time = vn_time.hour * 60 + vn_time.minute
+            # 9:00 (540) to 11:30 (690) or 13:00 (780) to 15:00 (900)
+            if 540 <= current_time <= 690:
+                status = "OPEN"
+            elif 690 < current_time < 780:
+                status = "LUNCH_BREAK"
+            elif 780 <= current_time <= 900:
+                status = "OPEN"
+        return {
+            "status": status,
+            "timezone": "Asia/Ho_Chi_Minh",
+            "time": vn_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "provider": "local_fallback"
+        }
 
 
 def get_etf_list() -> list[dict]:
@@ -463,14 +486,14 @@ def get_etf_list() -> list[dict]:
 def get_futures_list() -> list[dict]:
     """Get all futures instruments."""
     ref = get_reference()
-    df = safe_call(ref.futures.list)
+    df = safe_call(ref.futures().list)
     return df_to_records(df)
 
 
 def get_futures_info() -> Any:
     """Get futures specifications."""
     ref = get_reference()
-    result = safe_call(ref.futures.info)
+    result = safe_call(ref.futures().info)
     if isinstance(result, dict):
         return result
     return df_to_records(result)
@@ -479,14 +502,14 @@ def get_futures_info() -> Any:
 def get_warrant_list() -> list[dict]:
     """Get all covered warrants."""
     ref = get_reference()
-    df = safe_call(ref.warrant.list)
+    df = safe_call(ref.warrant().list)
     return df_to_records(df)
 
 
 def get_warrant_info() -> Any:
     """Get warrant specifications."""
     ref = get_reference()
-    result = safe_call(ref.warrant.info)
+    result = safe_call(ref.warrant().info)
     if isinstance(result, dict):
         return result
     return df_to_records(result)
