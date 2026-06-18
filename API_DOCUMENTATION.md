@@ -24,7 +24,7 @@
 |--------|----------|-------|
 | GET | `/` | Thông tin API |
 | GET | `/health` | Health check + cache stats |
-| POST | `/cache/clear` | Xóa toàn bộ cache  |
+| POST | `/cache/clear` | Xóa toàn bộ cache |
 
 ---
 
