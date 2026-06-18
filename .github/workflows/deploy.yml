@@ -6,26 +6,23 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: |
-            cd /home/sshuser/estock-api
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            # Pull latest code
-            git pull origin main
+      - name: Copy files and deploy
+        run: |
+          # Sync checked out code to app directory (excluding venv and git files)
+          rsync -ar --exclude='venv' --exclude='.git' --exclude='.github' ./ /home/sshuser/estock-api/
+          
+          cd /home/sshuser/estock-api
+          
+          # Activate virtual environment and install requirements
+          source venv/bin/activate
+          pip install -r requirements.txt --quiet
+          
+          # Restart systemd service
+          sudo systemctl restart estock-api
+          sudo systemctl status estock-api --no-pager
 
-            # Install/update dependencies
-            source venv/bin/activate
-            pip install -r requirements.txt --quiet
-
-            # Restart service
-            sudo systemctl restart estock-api
-            sudo systemctl status estock-api --no-pager
-
-            echo "✅ Deploy completed at $(date)"
