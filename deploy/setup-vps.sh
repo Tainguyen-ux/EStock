@@ -6,7 +6,7 @@
 
 set -e
 
-APP_DIR="/home/nhox9xy/estock-api"
+APP_DIR="/home/sshuser/estock-api"
 VENV_DIR="$APP_DIR/venv"
 
 echo "══════════════════════════════════════════════════"
@@ -45,11 +45,11 @@ After=network.target
 
 [Service]
 Type=simple
-User=nhox9xy
-Group=nhox9xy
-WorkingDirectory=/home/nhox9xy/estock-api
-Environment=PATH=/home/nhox9xy/estock-api/venv/bin:/usr/bin
-ExecStart=/home/nhox9xy/estock-api/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
+User=sshuser
+Group=sshuser
+WorkingDirectory=/home/sshuser/estock-api
+Environment=PATH=/home/sshuser/estock-api/venv/bin:/usr/bin
+ExecStart=/home/sshuser/estock-api/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 Restart=always
 RestartSec=5
 
@@ -69,4 +69,4 @@ echo "════════════════════════�
 sudo systemctl status estock-api --no-pager
 echo "══════════════════════════════════════════════════"
 echo "✅ Setup complete! API running at http://0.0.0.0:8000"
-echo "   Swagger: http://34.87.142.4:8000/docs"
+echo "   Swagger: http://172.16.12.229:8000/docs"

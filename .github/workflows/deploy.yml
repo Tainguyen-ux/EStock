@@ -15,7 +15,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd /home/nhox9xy/estock-api
+            cd /home/sshuser/estock-api
 
             # Pull latest code
             git pull origin main
