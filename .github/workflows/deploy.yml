@@ -1,0 +1,31 @@
+name: Deploy EStock API
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /home/nhox9xy/estock-api
+
+            # Pull latest code
+            git pull origin main
+
+            # Install/update dependencies
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+
+            # Restart service
+            sudo systemctl restart estock-api
+            sudo systemctl status estock-api --no-pager
+
+            echo "✅ Deploy completed at $(date)"
