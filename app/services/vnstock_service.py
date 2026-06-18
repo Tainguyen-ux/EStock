@@ -82,10 +82,26 @@ def get_equity_trades(symbol: str) -> list[dict]:
     return df_to_records(df)
 
 
-def get_market_quote() -> list[dict]:
-    """Get global market quote (all symbols)."""
+def get_market_quote(symbols: str | list[str] = "") -> list[dict]:
+    """Get market quote for a list of symbols or a comma-separated string.
+    If no symbols are specified, defaults to VN30 constituents."""
     market = get_market()
-    df = safe_call(market.quote)
+    
+    if not symbols:
+        try:
+            ref = get_reference()
+            vn30_series = ref.equity.list_by_group(group="VN30")
+            symbols = vn30_series.tolist()
+        except Exception as e:
+            logger.warning(f"Failed to fetch VN30 list: {e}. Falling back to default list.")
+            symbols = ["FPT", "TCB", "VCB", "HPG", "VNM", "MWG", "VIC", "VHM", "SSI", "STB"]
+    elif isinstance(symbols, str):
+        symbols = [s.strip().upper() for s in symbols.split(",") if s.strip()]
+        
+    if not symbols:
+        return []
+        
+    df = safe_call(market.quote, symbol=symbols)
     return df_to_records(df)
 
 

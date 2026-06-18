@@ -34,6 +34,9 @@
 ```
 GET /api/market/quote
 ```
+| Param | Type | Default | Mô tả |
+|-------|------|---------|-------|
+| symbols | query | "" | Danh sách mã chứng khoán (FPT,TCB,...). Để trống để lấy rổ VN30. |
 
 ### 1.2 OHLCV cổ phiếu
 ```

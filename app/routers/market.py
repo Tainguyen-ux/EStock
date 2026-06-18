@@ -12,10 +12,10 @@ router = APIRouter(prefix="/api/market", tags=["Market Data"])
 
 
 @router.get("/quote", response_model=ApiResponse, summary="Bảng giá toàn thị trường")
-async def market_quote():
-    """Lấy bảng giá real-time toàn thị trường."""
+async def market_quote(symbols: str = Query("", description="Danh sách mã chứng khoán cần lấy bảng giá, cách nhau bởi dấu phẩy. Để trống để lấy rổ VN30.")):
+    """Lấy bảng giá real-time toàn thị trường hoặc danh sách các mã chỉ định."""
     try:
-        data = vs.get_market_quote()
+        data = vs.get_market_quote(symbols=symbols)
         return ApiResponse(data=data, count=len(data))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
