@@ -310,7 +310,9 @@ def get_equity_by_industry() -> list[dict]:
 def get_equity_by_exchange(exchange: str) -> list[dict]:
     """Get equities by exchange."""
     ref = get_reference()
-    df = safe_call(ref.equity.list_by_exchange, exchange=exchange)
+    df = safe_call(ref.equity.list_by_exchange)
+    if isinstance(df, pd.DataFrame) and not df.empty and "exchange" in df.columns:
+        df = df[df["exchange"].astype(str).str.upper() == exchange.upper()]
     return df_to_records(df)
 
 
