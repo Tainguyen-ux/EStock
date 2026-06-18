@@ -12,7 +12,7 @@
   "data": [...],
   "message": "",
   "timestamp": "2026-06-17T13:00:00",
-  "count": 90 
+  "count": 90
 }
 ```
 
