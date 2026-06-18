@@ -18,25 +18,51 @@ _fundamental: Fundamental | None = None
 _retail: Retail | None = None
 
 
+_current_key_index: int = 0
+
+
 def init_vnstock():
     """Initialize vnstock instances. Call once at startup."""
-    global _market, _reference, _fundamental, _retail
+    global _market, _reference, _fundamental, _retail, _current_key_index
     settings = get_settings()
 
-    # Register API key if provided
-    if settings.VNSTOCK_API_KEY:
+    # Register first API key if provided
+    keys = settings.vnstock_api_keys
+    if keys:
         try:
             from vnstock import register_user
-            register_user(api_key=settings.VNSTOCK_API_KEY)
-            logger.info("Vnstock API key registered successfully")
+            register_user(api_key=keys[0])
+            _current_key_index = 0
+            logger.info(f"Vnstock API key index 0 registered successfully (starts with {keys[0][:12]}...)")
         except Exception as e:
-            logger.warning(f"Failed to register vnstock API key: {e}")
+            logger.warning(f"Failed to register first vnstock API key: {e}")
 
     _market = Market()
     _reference = Reference()
     _fundamental = Fundamental()
     _retail = Retail()
     logger.info("Vnstock instances initialized (Unified UI v4+)")
+
+
+def rotate_vnstock_key() -> bool:
+    """Rotate to the next configured vnstock API key."""
+    global _current_key_index
+    settings = get_settings()
+    keys = settings.vnstock_api_keys
+    if not keys or len(keys) <= 1:
+        logger.info("No alternative API keys configured for rotation")
+        return False
+
+    _current_key_index = (_current_key_index + 1) % len(keys)
+    new_key = keys[_current_key_index]
+    try:
+        from vnstock import register_user
+        register_user(api_key=new_key)
+        logger.info(f"Successfully rotated to vnstock API key index {_current_key_index} (starts with {new_key[:12]}...)")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to register rotated vnstock API key index {_current_key_index}: {e}")
+        return False
 
 
 def get_market() -> Market:

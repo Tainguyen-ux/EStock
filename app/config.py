@@ -35,6 +35,13 @@ class Settings(BaseSettings):
             return ["*"]
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
 
+    @property
+    def vnstock_api_keys(self) -> list[str]:
+        """Parse VNSTOCK_API_KEY string into a list of keys."""
+        if not self.VNSTOCK_API_KEY:
+            return []
+        return [k.strip() for k in self.VNSTOCK_API_KEY.split(",") if k.strip()]
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

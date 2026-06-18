@@ -38,13 +38,22 @@ def df_to_records(df: Any) -> list[dict]:
 
 
 def safe_call(func, *args, **kwargs) -> Any:
-    """Safely call a vnstock function with error handling."""
+    """Safely call a vnstock function with error handling and key rotation on failure."""
     try:
-        result = func(*args, **kwargs)
-        return result
+        return func(*args, **kwargs)
     except Exception as e:
-        logger.error(f"Vnstock API error: {func.__name__} - {e}")
-        raise
+        logger.warning(f"Vnstock API error in {func.__name__}: {e}. Attempting key rotation...")
+        from app.dependencies import rotate_vnstock_key
+        if rotate_vnstock_key():
+            try:
+                logger.info(f"Retrying {func.__name__} after key rotation...")
+                return func(*args, **kwargs)
+            except Exception as retry_e:
+                logger.error(f"Vnstock API error after key rotation in {func.__name__}: {retry_e}")
+                raise retry_e
+        else:
+            logger.error(f"Vnstock API error: {func.__name__} - {e}")
+            raise e
 
 
 # ═══════════════════════════════════════════════════════════════
