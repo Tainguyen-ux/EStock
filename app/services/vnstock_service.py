@@ -699,11 +699,99 @@ def get_financial_ratios(symbol: str, period: str = "year") -> list[dict]:
 # RETAIL DATA (Gold, Exchange Rate)
 # ═══════════════════════════════════════════════════════════════
 
+def _get_gold_prices_from_vang_today(source: str) -> list[dict]:
+    """Fallback / helper to fetch gold prices from vang.today API."""
+    try:
+        source_lower = source.lower().strip()
+        import httpx
+        r = httpx.get("https://vang.today/api/prices", timeout=10.0)
+        if r.status_code == 200:
+            data = r.json()
+            if data.get("success"):
+                prices = data.get("prices", {})
+                date_str = data.get("date", datetime.now().strftime("%Y-%m-%d"))
+                result = []
+                
+                if "doji" in source_lower:
+                    if "DOHNL" in prices:
+                        result.append({
+                            "name": "DOJI Hà Nội",
+                            "branch": "Hà Nội",
+                            "buy_price": float(prices["DOHNL"]["buy"]),
+                            "sell_price": float(prices["DOHNL"]["sell"]),
+                            "date": date_str
+                        })
+                    if "DOHCML" in prices:
+                        result.append({
+                            "name": "DOJI TP. HCM",
+                            "branch": "TP. HCM",
+                            "buy_price": float(prices["DOHCML"]["buy"]),
+                            "sell_price": float(prices["DOHCML"]["sell"]),
+                            "date": date_str
+                        })
+                    if not result and "DOJINHTV" in prices:
+                        result.append({
+                            "name": "DOJI Trang sức",
+                            "branch": "Toàn quốc",
+                            "buy_price": float(prices["DOJINHTV"]["buy"]),
+                            "sell_price": float(prices["DOJINHTV"]["sell"]),
+                            "date": date_str
+                        })
+                elif "pnj" in source_lower:
+                    if "PQHN24NTT" in prices:
+                        result.append({
+                            "name": "PNJ 24K",
+                            "branch": "Toàn quốc",
+                            "buy_price": float(prices["PQHN24NTT"]["buy"]),
+                            "sell_price": float(prices["PQHN24NTT"]["sell"]),
+                            "date": date_str
+                        })
+                    if "PQHNVM" in prices:
+                        result.append({
+                            "name": "PNJ Hà Nội",
+                            "branch": "Hà Nội",
+                            "buy_price": float(prices["PQHNVM"]["buy"]),
+                            "sell_price": float(prices["PQHNVM"]["sell"]),
+                            "date": date_str
+                        })
+                else:
+                    if "SJL1L10" in prices:
+                        result.append({
+                            "name": "SJC 9999",
+                            "branch": "Toàn quốc",
+                            "buy_price": float(prices["SJL1L10"]["buy"]),
+                            "sell_price": float(prices["SJL1L10"]["sell"]),
+                            "date": date_str
+                        })
+                    if "VNGSJC" in prices:
+                        result.append({
+                            "name": "SJC Việt Nam",
+                            "branch": "Toàn quốc",
+                            "buy_price": float(prices["VNGSJC"]["buy"]),
+                            "sell_price": float(prices["VNGSJC"]["sell"]),
+                            "date": date_str
+                        })
+                return result
+    except Exception as e:
+        logger.warning(f"Failed to fetch gold prices from vang.today: {e}")
+    return []
+
+
 def get_gold_prices(source: str = "sjc") -> list[dict]:
     """Get gold prices."""
-    retail = get_retail()
-    df = safe_call(retail.gold, source=source)
-    return df_to_records(df)
+    source_lower = source.lower().strip()
+    if source_lower in ["doji", "pnj"]:
+        res = _get_gold_prices_from_vang_today(source_lower)
+        if res:
+            return res
+            
+    try:
+        retail = get_retail()
+        df = safe_call(retail.gold, source=source_lower)
+        return df_to_records(df)
+    except Exception as e:
+        logger.warning(f"Vnstock retail.gold failed for {source}: {e}. Trying vang.today fallback.")
+        return _get_gold_prices_from_vang_today(source_lower)
 
 
 def get_exchange_rates() -> list[dict]:
