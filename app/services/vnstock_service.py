@@ -788,7 +788,11 @@ def get_gold_prices(source: str = "sjc") -> list[dict]:
     try:
         retail = get_retail()
         df = safe_call(retail.gold, source=source_lower)
-        return df_to_records(df)
+        records = df_to_records(df)
+        if not records:
+            logger.warning(f"Vnstock retail.gold returned empty for {source}. Trying vang.today fallback.")
+            return _get_gold_prices_from_vang_today(source_lower)
+        return records
     except Exception as e:
         logger.warning(f"Vnstock retail.gold failed for {source}: {e}. Trying vang.today fallback.")
         return _get_gold_prices_from_vang_today(source_lower)
