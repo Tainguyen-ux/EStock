@@ -514,7 +514,7 @@ def get_index_list() -> list[dict]:
 def get_index_members(index: str) -> list[dict]:
     """Get index constituents."""
     ref = get_reference()
-    df = safe_call(ref.index.members, index=index)
+    df = safe_call(ref.index.members, symbol=index)
     return df_to_records(df)
 
 
