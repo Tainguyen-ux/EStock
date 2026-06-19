@@ -390,7 +390,7 @@ def get_company_news(symbol: str) -> list[dict]:
                     if title and title not in seen_titles:
                         article_url = item.get("URL", "")
                         if article_url and not article_url.startswith("http"):
-                            article_url = f"https://kbbuddywts.kbsec.com.vn{article_url}"
+                            article_url = f"https://vietstock.vn{article_url}"
                         
                         pub_time = item.get("PublishTime", "")
                         try:

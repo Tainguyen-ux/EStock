@@ -193,7 +193,7 @@ GET /api/market/commodity/{symbol}/ohlcv
             "title": "Theo dấu dòng tiền cá mập 18/06: MSB hút tiền tự doanh, FPT bị khối ngoại xả mạnh",
             "head": "Khối ngoại bán ròng gần 1.9 ngàn tỷ đồng...",
             "publish_time": "2026-06-18 19:02:00",
-            "url": "https://kbbuddywts.kbsec.com.vn/2026/06/...",
+            "url": "https://vietstock.vn/2026/06/...",
             "article_id": 1455969
           }
         ]
