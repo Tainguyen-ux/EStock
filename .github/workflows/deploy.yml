@@ -16,6 +16,11 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /home/nhox9xy/estock-api
+            
+            # Print current status
+            echo "=== Diagnostic Info ==="
+            git status
+            git log -n 2
 
             # Pull latest code
             git pull origin main
@@ -24,9 +29,22 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt --quiet
 
+            # Check for stray uvicorn processes and kill them if they are not running under systemd
+            echo "=== Checking for stray uvicorn processes ==="
+            ps aux | grep uvicorn || true
+            sudo killall uvicorn || true
+            
             # Restart service
+            echo "=== Restarting service ==="
             sudo systemctl restart estock-api
+            
+            # Verify service state
+            echo "=== Service Status ==="
             sudo systemctl status estock-api --no-pager
+            
+            # Check if port 8000 is open and what process is using it
+            echo "=== Port 8000 Owner ==="
+            sudo lsof -i :8000 || sudo netstat -tulpn | grep 8000 || true
 
             echo "✅ Deploy completed at $(date)"
 
