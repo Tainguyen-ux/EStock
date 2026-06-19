@@ -366,11 +366,101 @@ def get_company_insider_trading(symbol: str) -> list[dict]:
 
 
 def get_company_news(symbol: str) -> list[dict]:
-    """Get company related news."""
-    ref = get_reference()
-    company = ref.company(symbol.upper())
-    df = safe_call(company.news)
-    return df_to_records(df)
+    """Get company related news using free custom crawler with fallback to vnstock."""
+    symbol = symbol.upper()
+    news_list = []
+    seen_titles = set()
+
+    # 1. KBS Public API (Free unauthenticated JSON)
+    try:
+        kbs_url = f"https://kbbuddywts.kbsec.com.vn/iis-server/investment/stockinfo/news/{symbol}"
+        headers = {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9,vi-VN;q=0.8",
+            "Connection": "keep-alive",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        import httpx
+        with httpx.Client(timeout=10.0, headers=headers) as client:
+            response = client.get(kbs_url)
+            if response.status_code == 200:
+                kbs_data = response.json()
+                for item in kbs_data:
+                    title = item.get("Title", "").strip()
+                    if title and title not in seen_titles:
+                        article_url = item.get("URL", "")
+                        if article_url and not article_url.startswith("http"):
+                            article_url = f"https://kbbuddywts.kbsec.com.vn{article_url}"
+                        
+                        pub_time = item.get("PublishTime", "")
+                        try:
+                            dt = datetime.fromisoformat(pub_time.split(".")[0])
+                            formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+                        except Exception:
+                            formatted_time = pub_time
+
+                        news_list.append({
+                            "title": title,
+                            "head": item.get("Head", "").strip(),
+                            "publish_time": formatted_time,
+                            "url": article_url,
+                            "article_id": item.get("ArticleID")
+                        })
+                        seen_titles.add(title)
+    except Exception as e:
+        logger.warning(f"Custom crawler failed to fetch news from KBS for {symbol}: {e}")
+
+    # 2. CafeF RSS Feed (Doanh nghiệp)
+    try:
+        import httpx
+        import xml.etree.ElementTree as ET
+        cafef_rss_url = "https://cafef.vn/doanh-nghiep.rss"
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(cafef_rss_url)
+            if response.status_code == 200:
+                root = ET.fromstring(response.content)
+                for item in root.findall(".//item"):
+                    title = item.find("title").text or ""
+                    description = item.find("description").text or ""
+                    link = item.find("link").text or ""
+                    pub_date = item.find("pubDate").text or ""
+                    
+                    if symbol in title.upper() or symbol in description.upper():
+                        if title not in seen_titles:
+                            news_list.append({
+                                "title": title.strip(),
+                                "head": description.strip(),
+                                "publish_time": pub_date,
+                                "url": link.strip(),
+                                "article_id": None
+                            })
+                            seen_titles.add(title)
+    except Exception as e:
+        logger.warning(f"Custom crawler failed to fetch news from CafeF RSS: {e}")
+
+    # Fallback to vnstock if custom crawling yielded nothing
+    if not news_list:
+        try:
+            logger.info(f"Custom news crawler returned empty for {symbol}. Falling back to vnstock.")
+            ref = get_reference()
+            company = ref.company(symbol)
+            df = safe_call(company.news)
+            vnstock_records = df_to_records(df)
+            for item in vnstock_records:
+                title = item.get("title", "")
+                if title and title not in seen_titles:
+                    news_list.append({
+                        "title": title,
+                        "head": item.get("head", ""),
+                        "publish_time": item.get("publish_time", ""),
+                        "url": item.get("url", ""),
+                        "article_id": item.get("article_id")
+                    })
+                    seen_titles.add(title)
+        except Exception as e:
+            logger.warning(f"Vnstock news fallback also failed: {e}")
+
+    return news_list
 
 
 def get_company_events(symbol: str) -> list[dict]:

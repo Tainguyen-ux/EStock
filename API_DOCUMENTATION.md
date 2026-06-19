@@ -186,6 +186,18 @@ GET /api/market/commodity/{symbol}/ohlcv
 *   `GET /api/reference/company/{symbol}/insider-trading`: Lịch sử giao dịch nội bộ của ban lãnh đạo và người có liên quan.
 *   `GET /api/reference/company/{symbol}/capital-history`: Lịch sử thay đổi và phát hành tăng vốn điều lệ.
 *   `GET /api/reference/company/{symbol}/news`: Tin tức báo chí cập nhật liên quan đến doanh nghiệp.
+    *   **Cấu trúc dữ liệu trong `data`**:
+        ```json
+        [
+          {
+            "title": "Theo dấu dòng tiền cá mập 18/06: MSB hút tiền tự doanh, FPT bị khối ngoại xả mạnh",
+            "head": "Khối ngoại bán ròng gần 1.9 ngàn tỷ đồng...",
+            "publish_time": "2026-06-18 19:02:00",
+            "url": "https://kbbuddywts.kbsec.com.vn/2026/06/...",
+            "article_id": 1455969
+          }
+        ]
+        ```
 *   `GET /api/reference/company/{symbol}/events`: Sự kiện chi trả cổ tức, họp ĐHĐCĐ sắp tới.
 
 ### 2.3 Nhóm Chỉ số (Index)
@@ -370,9 +382,9 @@ Các endpoint này trả về nến OHLCV kèm theo duy nhất dữ liệu tính
 
 ## 🔐 Cấu hình môi trường
 
-Tất cả các kết nối đến VNSTOCK được cấu hình trực tiếp thông qua tệp tin `.env` trên máy chủ:
+Tất cả các kết nối đến VNSTOCK được cấu hình trực tiếp thông qua tệp tin `.env` trên máy chủ. Hệ thống hỗ trợ cấu hình nhiều API Key phân tách bằng dấu phẩy để tự động xoay vòng (rotation) khi gặp lỗi giới hạn lượt gọi (rate-limit) hoặc lỗi kết nối:
 ```bash
-VNSTOCK_API_KEY=vnstock_16c02b705fa4867320800e7d168863de
+VNSTOCK_API_KEY=key1,key2,key3
 ```
 
 ---
