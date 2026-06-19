@@ -528,7 +528,7 @@ def get_index_groups() -> list[dict]:
 def get_index_info() -> list[dict]:
     """Get all market indices metadata."""
     ref = get_reference()
-    df = safe_call(ref.index.info)
+    df = safe_call(ref.index.list)
     return df_to_records(df)
 
 
