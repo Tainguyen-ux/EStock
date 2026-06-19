@@ -85,10 +85,17 @@ def get_equity_quote(symbol: str) -> list[dict]:
 
 def get_equity_trades(symbol: str) -> list[dict]:
     """Get tick-by-tick trade data."""
-    market = get_market()
-    equity = market.equity(symbol.upper())
-    df = safe_call(equity.trades)
-    return df_to_records(df)
+    try:
+        market = get_market()
+        equity = market.equity(symbol.upper())
+        df = safe_call(equity.trades)
+        return df_to_records(df)
+    except Exception as e:
+        err_msg = str(e)
+        if "trống" in err_msg or "empty" in err_msg.lower() or "ValueError" in err_msg or isinstance(e, ValueError):
+            logger.info(f"No intraday/trade data available for {symbol}: {e}")
+            return []
+        raise e
 
 
 def get_market_quote(symbols: str | list[str] = "") -> list[dict]:
@@ -203,10 +210,17 @@ def get_futures_quote(symbol: str) -> list[dict]:
 
 def get_futures_trades(symbol: str) -> list[dict]:
     """Get tick-by-tick trades for futures."""
-    market = get_market()
-    futures = market.futures(symbol.upper())
-    df = safe_call(futures.trades)
-    return df_to_records(df)
+    try:
+        market = get_market()
+        futures = market.futures(symbol.upper())
+        df = safe_call(futures.trades)
+        return df_to_records(df)
+    except Exception as e:
+        err_msg = str(e)
+        if "trống" in err_msg or "empty" in err_msg.lower() or "ValueError" in err_msg or isinstance(e, ValueError):
+            logger.info(f"No intraday/trade data available for futures {symbol}: {e}")
+            return []
+        raise e
 
 
 def get_warrant_ohlcv(symbol: str, start: str = "", end: str = "",
