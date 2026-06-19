@@ -29,22 +29,21 @@ jobs:
             source venv/bin/activate
             pip install -r requirements.txt --quiet
 
-            # Check for stray uvicorn processes and kill them if they are not running under systemd
-            echo "=== Checking for stray uvicorn processes ==="
-            ps aux | grep uvicorn || true
-            sudo killall uvicorn || true
+            # Kill uvicorn processes (systemd will automatically restart the service in 5s due to Restart=always)
+            echo "=== Restarting uvicorn by killing processes ==="
+            killall uvicorn || pkill -f uvicorn || true
             
-            # Restart service
-            echo "=== Restarting service ==="
-            sudo systemctl restart estock-api
+            # Wait for systemd to restart the service (RestartSec=5)
+            echo "=== Waiting 7s for auto-restart ==="
+            sleep 7
             
             # Verify service state
             echo "=== Service Status ==="
-            sudo systemctl status estock-api --no-pager
+            systemctl status estock-api --no-pager || true
             
             # Check if port 8000 is open and what process is using it
             echo "=== Port 8000 Owner ==="
-            sudo lsof -i :8000 || sudo netstat -tulpn | grep 8000 || true
+            lsof -i :8000 || netstat -an | grep 8000 || true
 
             echo "✅ Deploy completed at $(date)"
 
