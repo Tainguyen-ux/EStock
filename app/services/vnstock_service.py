@@ -449,11 +449,14 @@ def get_company_news(symbol: str) -> list[dict]:
             for item in vnstock_records:
                 title = item.get("title", "")
                 if title and title not in seen_titles:
+                    url = item.get("url", "")
+                    if url and not url.startswith("http"):
+                        url = f"https://vietstock.vn{url}"
                     news_list.append({
                         "title": title,
                         "head": item.get("head", ""),
                         "publish_time": item.get("publish_time", ""),
-                        "url": item.get("url", ""),
+                        "url": url,
                         "article_id": item.get("article_id")
                     })
                     seen_titles.add(title)
