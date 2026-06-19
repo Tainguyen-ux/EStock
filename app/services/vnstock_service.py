@@ -71,8 +71,19 @@ def get_equity_ohlcv(symbol: str, start: str = "", end: str = "",
         kwargs["end"] = end
     else:
         kwargs["length"] = length
-    df = safe_call(equity.ohlcv, **kwargs)
-    return df_to_records(df)
+    try:
+        df = safe_call(equity.ohlcv, source="kbs", **kwargs)
+        records = df_to_records(df)
+        if records:
+            return records
+    except Exception as e:
+        logger.warning(f"Vnstock equity.ohlcv with KBS failed for {symbol}: {e}. Retrying with VCI source...")
+    try:
+        df = safe_call(equity.ohlcv, source="vci", **kwargs)
+        return df_to_records(df)
+    except Exception as e:
+        logger.error(f"Vnstock equity.ohlcv with both KBS and VCI failed for {symbol}: {e}")
+    return []
 
 
 def get_equity_quote(symbol: str) -> list[dict]:
@@ -132,8 +143,19 @@ def get_index_ohlcv(index: str, start: str = "", end: str = "",
         kwargs["end"] = end
     else:
         kwargs["length"] = length
-    df = safe_call(idx.ohlcv, **kwargs)
-    return df_to_records(df)
+    try:
+        df = safe_call(idx.ohlcv, source="kbs", **kwargs)
+        records = df_to_records(df)
+        if records:
+            return records
+    except Exception as e:
+        logger.warning(f"Vnstock index.ohlcv with KBS failed for {index}: {e}. Retrying with VCI source...")
+    try:
+        df = safe_call(idx.ohlcv, source="vci", **kwargs)
+        return df_to_records(df)
+    except Exception as e:
+        logger.error(f"Vnstock index.ohlcv with both KBS and VCI failed for {index}: {e}")
+    return []
 
 
 def get_forex_ohlcv(pair: str, start: str = "", end: str = "",
@@ -196,8 +218,19 @@ def get_futures_ohlcv(symbol: str, start: str = "", end: str = "",
         kwargs["end"] = end
     else:
         kwargs["length"] = length
-    df = safe_call(futures.ohlcv, **kwargs)
-    return df_to_records(df)
+    try:
+        df = safe_call(futures.ohlcv, source="kbs", **kwargs)
+        records = df_to_records(df)
+        if records:
+            return records
+    except Exception as e:
+        logger.warning(f"Vnstock futures.ohlcv with KBS failed for {symbol}: {e}. Retrying with VCI source...")
+    try:
+        df = safe_call(futures.ohlcv, source="vci", **kwargs)
+        return df_to_records(df)
+    except Exception as e:
+        logger.error(f"Vnstock futures.ohlcv with both KBS and VCI failed for {symbol}: {e}")
+    return []
 
 
 def get_futures_quote(symbol: str) -> list[dict]:
@@ -234,8 +267,19 @@ def get_warrant_ohlcv(symbol: str, start: str = "", end: str = "",
         kwargs["end"] = end
     else:
         kwargs["length"] = length
-    df = safe_call(warrant.ohlcv, **kwargs)
-    return df_to_records(df)
+    try:
+        df = safe_call(warrant.ohlcv, source="kbs", **kwargs)
+        records = df_to_records(df)
+        if records:
+            return records
+    except Exception as e:
+        logger.warning(f"Vnstock warrant.ohlcv with KBS failed for {symbol}: {e}. Retrying with VCI source...")
+    try:
+        df = safe_call(warrant.ohlcv, source="vci", **kwargs)
+        return df_to_records(df)
+    except Exception as e:
+        logger.error(f"Vnstock warrant.ohlcv with both KBS and VCI failed for {symbol}: {e}")
+    return []
 
 
 def get_warrant_quote(symbol: str) -> list[dict]:
@@ -257,8 +301,19 @@ def get_etf_ohlcv(symbol: str, start: str = "", end: str = "",
         kwargs["end"] = end
     else:
         kwargs["length"] = length
-    df = safe_call(etf.ohlcv, **kwargs)
-    return df_to_records(df)
+    try:
+        df = safe_call(etf.ohlcv, source="kbs", **kwargs)
+        records = df_to_records(df)
+        if records:
+            return records
+    except Exception as e:
+        logger.warning(f"Vnstock etf.ohlcv with KBS failed for {symbol}: {e}. Retrying with VCI source...")
+    try:
+        df = safe_call(etf.ohlcv, source="vci", **kwargs)
+        return df_to_records(df)
+    except Exception as e:
+        logger.error(f"Vnstock etf.ohlcv with both KBS and VCI failed for {symbol}: {e}")
+    return []
 
 
 def get_etf_quote(symbol: str) -> list[dict]:
