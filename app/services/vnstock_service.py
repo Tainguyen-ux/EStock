@@ -608,11 +608,25 @@ def get_futures_list() -> list[dict]:
 
 def get_futures_info() -> Any:
     """Get futures specifications."""
-    ref = get_reference()
-    result = safe_call(ref.futures().info)
-    if isinstance(result, dict):
-        return result
-    return df_to_records(result)
+    try:
+        ref = get_reference()
+        result = safe_call(ref.futures().info)
+        if isinstance(result, dict):
+            return result
+        return df_to_records(result)
+    except Exception as e:
+        logger.warning(f"Failed to get futures info from vnstock: {e}. Trying list fallback.")
+        try:
+            ref = get_reference()
+            df = safe_call(ref.futures().list)
+            if df is not None:
+                import pandas as pd
+                if isinstance(df, pd.Series):
+                    df = df.to_frame(name="symbol")
+                return df_to_records(df)
+        except Exception as ex:
+            logger.warning(f"Failed to list futures: {ex}")
+    return []
 
 
 def get_warrant_list() -> list[dict]:
@@ -624,11 +638,25 @@ def get_warrant_list() -> list[dict]:
 
 def get_warrant_info() -> Any:
     """Get warrant specifications."""
-    ref = get_reference()
-    result = safe_call(ref.warrant().info)
-    if isinstance(result, dict):
-        return result
-    return df_to_records(result)
+    try:
+        ref = get_reference()
+        result = safe_call(ref.warrant().info)
+        if isinstance(result, dict):
+            return result
+        return df_to_records(result)
+    except Exception as e:
+        logger.warning(f"Failed to get warrant info from vnstock: {e}. Trying list fallback.")
+        try:
+            ref = get_reference()
+            df = safe_call(ref.warrant().list)
+            if df is not None:
+                import pandas as pd
+                if isinstance(df, pd.Series):
+                    df = df.to_frame(name="symbol")
+                return df_to_records(df)
+        except Exception as ex:
+            logger.warning(f"Failed to list warrants: {ex}")
+    return []
 
 
 def get_bond_list() -> list[dict]:
